@@ -1,0 +1,5 @@
+run_datetime,run_date,ticker,model,p,o,q,mean,dist,day_count,agg_days,agg_ann_vol,agg_ann_vol_lo95,agg_ann_vol_hi95,aic
+2025-11-21T14:17:11,2025-11-21,AAPL,GJR-GARCH,1,1,1,Constant,t,252,,,,,2683.3402327624062
+2025-11-23T15:34:43,2025-11-23,AAPL,GJR-GARCH,1,1,1,Constant,t,252,,,,,2684.432189799232
+2025-11-30T22:05:32,2025-11-30,AAPL,GJR-GARCH,1,1,1,Constant,t,252,,,,,2676.3323070231945
+2026-01-14T20:43:32,2026-01-14,AAPL,GJR-GARCH,1,1,1,Constant,t,252,,,,,2618.9004525535743

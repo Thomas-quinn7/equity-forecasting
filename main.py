@@ -9,41 +9,19 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-# Support both package execution (python -m Stock_pred.garch_main)
-# and direct script execution (python Stock_pred/garch_main.py)
-try:
-    from .garch_model import (
-        fetch_prices,
-        log_returns,
-        fit_garch,
-        forecast_volatility,
-        plot_conditional_volatility,
-        select_gjr_orders,
-    )
-    from .arima_models import (
-        fit_arima_grid,
-        forecast_returns,
-        forecast_prices_from_returns,
-    )
-except Exception:  # pragma: no cover - fallback for direct script run
-    import os
-
-    ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-    if ROOT not in sys.path:
-        sys.path.insert(0, ROOT)
-    from Stock_pred.garch_model import (  # type: ignore
-        fetch_prices,
-        log_returns,
-        fit_garch,
-        forecast_volatility,
-        plot_conditional_volatility,
-        select_gjr_orders,
-    )
-    from Stock_pred.arima_models import (  # type: ignore
-        fit_arima_grid,
-        forecast_returns,
-        forecast_prices_from_returns,
-    )
+from garch_model import (
+    fetch_prices,
+    log_returns,
+    fit_garch,
+    forecast_volatility,
+    plot_conditional_volatility,
+    select_gjr_orders,
+)
+from arima_models import (
+    fit_arima_grid,
+    forecast_returns,
+    forecast_prices_from_returns,
+)
 
 
 def _append_records(out_csv: str, records: list[dict]) -> None:

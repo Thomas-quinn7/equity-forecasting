@@ -4,5 +4,3 @@ matplotlib
 yfinance
 statsmodels
 arch
-jax
-jaxlib

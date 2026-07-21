@@ -4,12 +4,11 @@ from typing import Iterable, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-import yfinance as yf
-
-warnings.filterwarnings("ignore")
 
 
 def fetch_prices(ticker: str, period: str = "3y", interval: str = "1d") -> pd.Series:
+    import yfinance as yf
+
     data = yf.Ticker(ticker).history(period=period, interval=interval)
     if data.empty or "Close" not in data.columns:
         raise ValueError("No price data fetched. Check ticker, period, or internet connection.")
@@ -77,14 +76,20 @@ def fit_arima_grid(
                 if p == 0 and d == 0 and q == 0:
                     continue
                 try:
-                    m = ARIMA(
-                        y,
-                        order=(p, d, q),
-                        dates=y.index,
-                        freq=freq,
-                        enforce_stationarity=enforce_stationarity,
-                        enforce_invertibility=enforce_invertibility,
-                    ).fit(method_kwargs={"disp": 0})
+                    with warnings.catch_warnings():
+                        # Grid search intentionally tries orders that may not
+                        # converge; suppress the expected chatter per-fit only.
+                        warnings.filterwarnings("ignore", category=UserWarning)
+                        warnings.filterwarnings("ignore", category=RuntimeWarning)
+                        warnings.filterwarnings("ignore", message=".*[Cc]onvergence.*")
+                        m = ARIMA(
+                            y,
+                            order=(p, d, q),
+                            dates=y.index,
+                            freq=freq,
+                            enforce_stationarity=enforce_stationarity,
+                            enforce_invertibility=enforce_invertibility,
+                        ).fit(method_kwargs={"disp": 0})
                     aic = float(m.aic)
                     if verbose:
                         print(f"ARIMA{(p, d, q)} AIC={aic:.2f}")

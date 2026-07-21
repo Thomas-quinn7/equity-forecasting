@@ -2,11 +2,6 @@ import warnings
 from typing import Optional, Tuple, Iterable
 import numpy as np
 import pandas as pd
-import yfinance as yf
-import matplotlib.pyplot as plt
-
-
-warnings.filterwarnings("ignore")
 
 
 def fetch_prices(ticker: str, period: str = "3y", interval: str = "1d") -> pd.Series:
@@ -20,6 +15,8 @@ def fetch_prices(ticker: str, period: str = "3y", interval: str = "1d") -> pd.Se
     Returns:
         Series of adjusted close prices indexed by date.
     """
+    import yfinance as yf
+
     data = yf.Ticker(ticker).history(period=period, interval=interval)
     if data.empty or "Close" not in data.columns:
         raise ValueError("No price data fetched. Check ticker, period, or internet connection.")
@@ -81,7 +78,12 @@ def fit_garch(
 
     # Using vol="GARCH" with o>0 produces a GJR-GARCH specification
     am = arch_model(y, vol="GARCH", p=p, o=o, q=q, mean=mean, dist=dist)
-    res = am.fit(disp="off")
+    with warnings.catch_warnings():
+        # Optimizer convergence chatter is expected during grid searches;
+        # anything else (deprecations, numerical issues) still surfaces.
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+        warnings.filterwarnings("ignore", message=".*[Cc]onvergence.*")
+        res = am.fit(disp="off")
     if show_output:
         print(res.summary())
     return res
@@ -280,6 +282,8 @@ def forecast_volatility(
 
 def plot_conditional_volatility(fitted_model, title: Optional[str] = None) -> None:
     """Plot in-sample conditional volatility."""
+    import matplotlib.pyplot as plt
+
     cond_vol = fitted_model.conditional_volatility
     cond_vol = cond_vol / 100.0
     plt.figure(figsize=(10, 4), dpi=150)

@@ -1,5 +1,7 @@
 # Equity Forecasting (ARIMA + GARCH)
 
+![tests](https://github.com/Thomas-quinn7/equity-forecasting/actions/workflows/tests.yml/badge.svg)
+
 Time-series forecasting of equities: ARIMA models for the conditional mean and GJR-GARCH models for the conditional volatility, with a harness to fit, compare, and export results across tickers, and a walk-forward out-of-sample backtest that checks whether the volatility forecasts actually beat standard baselines.
 
 ## Contents

@@ -63,12 +63,16 @@ def fit_arima_grid(
     best: Optional[ArimaResult] = None
     y = series.dropna().astype(float)
 
-    # Try to provide frequency info to avoid statsmodels ValueWarning
-    if freq is None:
+    # Try to provide frequency info to avoid statsmodels ValueWarning.
+    # Dates/freq only make sense for a DatetimeIndex; an integer/range index
+    # (as used by the walk-forward evaluator) is passed through untouched.
+    use_dates = isinstance(y.index, pd.DatetimeIndex)
+    if freq is None and use_dates:
         try:
             freq = pd.infer_freq(y.index) or "B"
         except Exception:
             freq = "B"
+    date_kwargs = {"dates": y.index, "freq": freq} if use_dates else {}
 
     for d in d_grid:
         for p in range(0, p_max + 1):
@@ -85,10 +89,9 @@ def fit_arima_grid(
                         m = ARIMA(
                             y,
                             order=(p, d, q),
-                            dates=y.index,
-                            freq=freq,
                             enforce_stationarity=enforce_stationarity,
                             enforce_invertibility=enforce_invertibility,
+                            **date_kwargs,
                         ).fit(method_kwargs={"disp": 0})
                     aic = float(m.aic)
                     if verbose:

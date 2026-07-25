@@ -44,16 +44,22 @@ def _gjr_causal_filter(
     alphas: np.ndarray,
     gammas: np.ndarray,
     betas: np.ndarray,
+    init_var: Optional[float] = None,
 ) -> np.ndarray:
     """Run the GJR-GARCH variance recursion over `y` and return sigma2.
 
     sigma2[t] is built from returns up to t-1 only, so it IS the one-step
-    ahead variance forecast for day t. Initialized at the sample variance.
+    ahead variance forecast for day t. The recursion seed defaults to the
+    sample variance of `y`; when `y` extends past the training window, pass
+    `init_var` computed on training data only so the seed cannot leak
+    forward-block information (the effect decays like beta^t but a causal
+    filter should be causal at t=0 too).
     """
     n = y.size
     p, o, q = len(alphas), len(gammas), len(betas)
     eps = y - mu
-    sigma2 = np.full(n, np.var(y), dtype=float)
+    seed = float(np.var(y)) if init_var is None else float(init_var)
+    sigma2 = np.full(n, seed, dtype=float)
     for t in range(1, n):
         s2 = omega
         for i in range(1, p + 1):
@@ -113,7 +119,12 @@ def garch_walkforward_variance(
         fitted = fit_garch(train, p=p, o=o, q=q, dist=dist, rescale=False)
         mu, omega, alphas, gammas, betas = _extract_params(fitted, p, o, q)
         # Filter over history + this block; keep only the block's forecasts.
-        sigma2 = _gjr_causal_filter(y_all[:end], mu, omega, alphas, gammas, betas)
+        # Seed from the training window only — np.var over y_all[:end] would
+        # let the block's own returns leak into the recursion's initial state.
+        sigma2 = _gjr_causal_filter(
+            y_all[:end], mu, omega, alphas, gammas, betas,
+            init_var=float(np.var(y_all[:start])),
+        )
         forecasts[start:end] = sigma2[start:end]
 
     out = pd.Series(forecasts[min_train:], index=idx[min_train:], name="garch_var")

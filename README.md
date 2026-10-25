@@ -18,7 +18,7 @@ Time-series forecasting of equities: ARIMA models for the conditional mean and G
 
 An in-sample GARCH fit says nothing about forecasting skill, so the backtest re-fits on an expanding window every 21 days and produces 1-step-ahead variance forecasts where the forecast for day t only ever sees returns through day t-1 (enforced by a corruption test in `tests/`). Forecasts are scored against squared daily returns with QLIKE (robust to the noisy proxy; Patton 2011) and MSE, compared against two baselines every practitioner would reach for first - RiskMetrics EWMA (lambda = 0.94) and a 21-day rolling window - plus a Mincer-Zarnowitz regression and a Diebold-Mariano test of GARCH vs EWMA.
 
-Result on AAPL/MSFT/GOOGL, 5y history, ~750 OOS days each (see `backtest_results/vol_backtest.csv`): GJR-GARCH has the best QLIKE on all three tickers and the ranking GARCH < EWMA < rolling is consistent, but the Diebold-Mariano test only reaches 5% significance on two of the three (AAPL p = 0.02, GOOGL p = 0.04, MSFT p = 0.50), and the Mincer-Zarnowitz R-squared is small everywhere - daily squared returns are a noisy target. Honest summary: the GJR fit adds real but modest forecasting value over EWMA, and none of these models would impress on MSE alone.
+Result on AAPL/MSFT/GOOGL, 5y history, ~750 OOS days each (see `backtest_results/vol_backtest.csv`): GJR-GARCH has the best QLIKE on all three tickers and the ranking GARCH < EWMA < rolling is consistent, but the Diebold-Mariano test only reaches 5% significance on two of the three (AAPL p = 0.02, GOOGL p = 0.04, MSFT p = 0.50), and the Mincer-Zarnowitz R-squared is small everywhere - daily squared returns are a noisy target. Honest summary: the GJR fit scores better than EWMA on every ticker, however the evidence is modest, significant on two of three tickers individually and on none after a Holm correction across the three, and none of these models would impress on MSE alone.
 
 ```bash
 python backtest_vol.py --tickers AAPL MSFT GOOGL --period 5y
@@ -28,8 +28,8 @@ python backtest_vol.py --tickers AAPL MSFT GOOGL --period 5y
 
 The same discipline applied to the ARIMA side, which previously produced
 forecasts nothing ever graded. Every 63 days the AIC grid is re-run on the
-expanding training window only — order selection happens *inside* the walk,
-because a full-sample AIC pick is itself a look-ahead — and 1-step-ahead
+expanding training window only - order selection happens *inside* the walk,
+because a full-sample AIC pick is itself a look-ahead - and 1-step-ahead
 return forecasts are scored (MSE, MAE, directional hit rate) against the two
 null models any return forecast must beat: the zero forecast (random-walk
 prices) and the expanding historical mean, with a Diebold-Mariano test of
@@ -38,11 +38,11 @@ synthetic-AR(1) test proves the harness detects real signal when it exists.
 
 Result on AAPL/MSFT/GOOGL, 5y history, 753 OOS days each (see
 `backtest_results/arima_backtest.csv`): ARIMA fails to beat the zero forecast
-on every ticker — hit rate 48-49% (below a coin flip), and the Diebold-Mariano
+on every ticker - hit rate 48-49% (below a coin flip), and the Diebold-Mariano
 test says its squared-error loss is *significantly worse* than zero's on AAPL
 (p = 0.04) and MSFT (p = 0.05). Fitting AR structure to daily equity returns
-adds noise, not signal. That is the finding, not a failure of the harness —
-on synthetic AR(1) data the same pipeline beats zero decisively — and it is
+adds noise, not signal. That is the finding, not a failure of the harness  - 
+on synthetic AR(1) data the same pipeline beats zero decisively - and it is
 why the repo's headline model is the volatility forecaster, where the GJR fit
 does add value.
 
